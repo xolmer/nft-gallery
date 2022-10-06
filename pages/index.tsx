@@ -18,7 +18,7 @@ const Home: NextPage = () => {
       let requestOptions = {
         method: 'GET',
       };
-      const api_key = '4rJWZYcwZf5i5pBh9Lqrb1H5wj21SiCL';
+      const api_key = process.env.ALCHEMY_API_KEY;
       const base_url = `https://eth-mainnet.g.alchemy.com/v2/${api_key}/getNFTs`;
       const fetch_url = `${base_url}/?owner=${walletAddress.current?.value}`;
 
