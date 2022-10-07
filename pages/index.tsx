@@ -2,12 +2,13 @@ import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import NFTCard from '../components/NFTCard';
 
 const Home: NextPage = () => {
   const walletAddress = useRef<HTMLInputElement>(null);
   const collectionAddress = useRef<HTMLInputElement>(null);
 
-  const [NFTs, setNFTs] = useState({});
+  const [NFTs, setNFTs] = useState([]);
   const [NftCollection, setNftCollection] = useState(false);
 
   const fetchNFTs = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -18,13 +19,16 @@ const Home: NextPage = () => {
       method: 'GET',
     };
     if (!collectionAddress.current?.value) {
+      console.log('No collection address');
       const fetch_url = `${base_url}/?owner=${walletAddress.current?.value}`;
       const response = await fetch(fetch_url, requestOptions);
       const data = await response.json();
       setNFTs(data.ownedNfts);
       console.log(data.ownedNfts);
     } else {
-      const fetch_url = `${base_url}/?owner=${walletAddress.current?.value}&contractAddresses%5B%5D=${collectionAddress.current?.value}`;
+      console.log('fetching nfts for collection owned by address');
+      const fetch_url = `${base_url}?owner=${walletAddress.current?.value}&contractAddresses%5B%5D=${collectionAddress.current?.value}`;
+
       const response = await fetch(fetch_url, requestOptions);
       const data = await response.json();
       setNFTs(data.ownedNfts);
@@ -52,45 +56,54 @@ const Home: NextPage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-8 gap-y-3">
-      <div className="flex flex-col w-full justify-center items-center gap-y-2">
-        <div className="col-span-3 sm:col-span-2">
-          <div className="mt-1 flex rounded-md shadow-sm p-2">
-            <input
-              className="block flex-1  rounded-lg border-gray-300 border focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 w-[500px] "
-              type="text"
-              placeholder="NFT Owner Address"
-              ref={walletAddress}
-            />
-          </div>
-
+    <div className="flex flex-col items-center justify-center min-h-screen py-2">
+      <div className="flex flex-col items-center justify-center py-8 gap-y-3">
+        <div className="flex flex-col w-full justify-center items-center gap-y-2">
           <div className="col-span-3 sm:col-span-2">
             <div className="mt-1 flex rounded-md shadow-sm p-2">
               <input
-                className="block flex-1  rounded-lg border-gray-300 border focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 w-[500px]"
-                type="text"
-                placeholder="Collection (Smart Contract) Address"
-                ref={collectionAddress}
+                className="block flex-1  rounded-lg border-gray-300 border focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 w-[500px] "
+                type="search"
+                placeholder="NFT Owner Address"
+                ref={walletAddress}
               />
             </div>
+
+            <div className="col-span-3 sm:col-span-2">
+              <div className="mt-1 flex rounded-md shadow-sm p-2">
+                <input
+                  className="block flex-1  rounded-lg border-gray-300 border focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 w-[500px]"
+                  type="search"
+                  placeholder="Collection (Smart Contract) Address"
+                  ref={collectionAddress}
+                />
+              </div>
+            </div>
           </div>
+          <label className="text-gray-600 ">
+            <input
+              type={'checkbox'}
+              onChange={(e) => {
+                e.target.checked ? setNftCollection(true) : setNftCollection(false);
+              }}
+              className="mr-2"
+            />
+            Fetch for collection
+          </label>
+          <button
+            className="disabled:bg-slate-500 text-white bg-blue-400 px-4 py-2 mt-3 rounded-lg w-1/5"
+            onClick={NftCollection ? fetchNFTsForCollection : fetchNFTs}
+          >
+            Search
+          </button>
         </div>
-        <label className="text-gray-600 ">
-          <input
-            type={'checkbox'}
-            onChange={(e) => {
-              e.target.checked ? setNftCollection(true) : setNftCollection(false);
-            }}
-            className="mr-2"
-          />
-          Fetch for collection
-        </label>
-        <button
-          className="disabled:bg-slate-500 text-white bg-blue-400 px-4 py-2 mt-3 rounded-lg w-1/5"
-          onClick={NftCollection ? fetchNFTsForCollection : fetchNFTs}
-        >
-          Search
-        </button>
+      </div>
+      <div className="border-b-2 w-1/2 border-gray-300"></div>
+
+      <div className="flex flex-wrap gap-y-12 mt-4 w-5/6 gap-x-2 justify-center">
+        {NFTs.length
+          ? NFTs.map((nft: any) => <NFTCard nft={nft} key={nft.tokenId} />)
+          : `No NFTs found`}
       </div>
     </div>
   );
